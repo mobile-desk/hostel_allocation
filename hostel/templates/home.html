@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+    <div class="row" style="margin-top: 5%;">
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div class="card">
+                {% if user.is_authenticated %}
+                    {% if has_profile %}
+                        {% if profile.hostel %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{profile.hostel}}</h5>
+                                
+                            </div>
+                        {% else %}
+                            <div class="card-body">
+                                <h5 class="card-title">No Hostel</h5>
+                                <p class="card-text">
+                                    To get allocated a hostel, simply click on the "Get Hostel" button below.<br> 
+                                    Our system will match your preferences and assign you a suitable hostel.<br> 
+                                    Start your hostel journey now!
+                                </p>
+                                <form method="POST" action="{% url 'allocate_hostel' %}">
+                                    {% csrf_token %}
+                                    <input type="submit" value="Get Hostel" class="btn btn-primary">
+                                </form>
+                                
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="card-body">
+                            <h5 class="card-title">SETUP YOUR PROFILE</h5>
+                            <p class="card-text">
+                                Before you can start using the platform, we kindly ask you to set up your profile.<br> 
+                                By providing the necessary information, we can ensure that you are allocated to a suitable hostel based on your preferences.<br>
+                                To set up your profile, please click on the "Create Profile" button below.<br> 
+                                You will be guided through a simple process where you can specify your gender, room preferences, and any other relevant details.<br> 
+                                Having an accurate profile will help us in allocating you to the most suitable accommodation.<br>
+                                Thank you for your cooperation. We look forward to providing you with a comfortable and enjoyable hostel experience!
+                            </p>
+                            <a href="create-profile" class="btn btn-primary">Create Profile</a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="card-body">
+                        <h5 class="card-title">LOGIN TO ACCESS</h5>
+                        <p class="card-text">
+                            To access and utilize the features of our platform,<br> 
+                            please log in with your credentials.<br> 
+                            If you don't have an account yet, you can easily create one to get started.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Special title treatment</h5>
+                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    
+
+    
+{% endblock content %}
