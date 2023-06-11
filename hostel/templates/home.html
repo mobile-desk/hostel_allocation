@@ -10,7 +10,8 @@
                     {% if has_profile %}
                         {% if profile.hostel %}
                             <div class="card-body">
-                                <h5 class="card-title">{{profile.hostel}}</h5>
+                                <h5 class="card-title"> HOSTEL NAME: {{profile.hostel}} </h5>
+                                <h6> ROOM NO: {{profile.room_for_student.room_no}}</h6>
                                 
                             </div>
                         {% else %}
@@ -57,16 +58,82 @@
         <div class="col-sm-6">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Special title treatment</h5>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                    <h5 class="card-title">Complaint Form</h5>
+                    {% if has_profile %}
+                        <p class="card-text">If any of your utilities are faulty, make a complaint below.</p>
+                        <a href="{% url 'create_complaint' %}" class="btn btn-danger">Make A Complaint</a>
+                    {% else %}    
+                        <p class="card-text">You have not been assigned a hostel yet</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Utilities and roommates-->
+    {% if user.is_authenticated %}
+        {% if has_profile %}
+            <div class="row" style="margin-top: 5%;">
+                <div class="col-sm-6 mb-3 mb-sm-0">
+                    <div>
+                        {% for utility in utilities %}
+                            <div class="card" style="width: 18rem;">
+                                <div class="card-header">
+                                    <b>UTILITIES</b>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">Fan: {% if utility.fan %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Bed: {% if utility.bed %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Mattress: {% if utility.mattress %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Pillows: {% if utility.pillows %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Wardrobe: {% if utility.wardrobe %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Book Rack: {% if utility.book_rack %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Tables: {% if utility.tables %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Chairs: {% if utility.chairs %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Wall Socket: {% if utility.wall_socket %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Tiles: {% if utility.tiles %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Paint: {% if utility.paint %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Window: {% if utility.window %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Waste Bin: {% if utility.waste_bin %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Door: {% if utility.door %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Door Lock: {% if utility.door_lock %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Bulb: {% if utility.bulb %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Wiring: {% if utility.wiring %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Shower: {% if utility.shower %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Towel Holder: {% if utility.towel_holder %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Tap: {% if utility.tap %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Water Closet: {% if utility.water_closet %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">TV: {% if utility.TV %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                    <li class="list-group-item">Decoder: {% if utility.decoder %}&#10004;{% else %}&#10060;{% endif %}</li>
+                                </ul>
+                            </div>
+                        {% empty %}
+                            <p>No utilities found.</p>
+                        {% endfor %}
 
+                    </div>
+                </div>
+                
+                <div class="col-sm-6">
+                    
+                    <div class="card" style="width: 18rem;">
+                        <div class="card-header">
+                            <b>ROOMMATES</b>
+                        </div>
 
+                        <ul class="list-group list-group-flush">
+                            {% for roommate in roommates %}
+                                <li class="list-group-item">{{ roommate.user.first_name }} {{ roommate.user.last_name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+
+                </div>
+
+            </div>
+        {% endif %}
+    {% endif %}
 
 
 

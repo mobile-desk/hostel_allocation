@@ -6,14 +6,6 @@
 
 {% block content %}
 
-    {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="color: white;">
-            <strong style="color: white;"> Message: </strong> {{ message }}
-            <button style="color: white;" type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    {% endfor %}
 
     <div class="mb-3">
         <h1>Log In</h1>

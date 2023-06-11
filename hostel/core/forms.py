@@ -1,5 +1,5 @@
 from django import forms
-from .models import Student
+from .models import Student, Utilities
 from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm
 from django.contrib.auth.models import User
 
@@ -67,3 +67,50 @@ class ProfileForm(forms.ModelForm):
 
 
 
+class ComplaintForm(forms.ModelForm):
+    class Meta:
+        model = Utilities
+        fields = ['utility', 'note']
+
+
+    #ChoiceField
+    CHOICES = (
+        ('fan', 'Fan'),
+        ('bed', 'Bed'),
+        ('mattress', 'Mattress'),
+        ('pillows', 'Pillows'),
+        ('wardrobe', 'Wardrobe'),
+        ('book_rack', 'Book Rack'),
+        ('tables', 'Tables'),
+        ('chairs', 'Chairs'),
+        ('wall_socket', 'Wall Socket'),
+        ('tiles', 'Tiles'),
+        ('paint', 'Paint'),
+        ('window', 'Window'),
+        ('waste_bin', 'Waste Bin'),
+        ('door', 'Door'),
+        ('door_lock', 'Door Lock'),
+        ('bulb', 'Bulb'),
+        ('wiring', 'Wiring'),
+        ('shower', 'Shower'),
+        ('towel_holder', 'Towel Holder'),
+        ('tap', 'Tap'),
+        ('water_closet', 'Water Closet'),
+        ('TV', 'TV'),
+        ('decoder', 'Decoder'),
+        ('other', 'Others')
+    )
+    
+    utility = forms.ChoiceField(
+       choices=CHOICES, 
+       widget=forms.Select(attrs={
+        'class': 'form-control'
+        }))
+    
+
+    # Charfield
+    note = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control'
+        })
+    )

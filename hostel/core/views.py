@@ -6,8 +6,8 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from hostel import settings
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Student, Hostel, Room
-from .forms import ProfileForm
+from .models import Student, Hostel, Room, Utilities, Complaint
+from .forms import ProfileForm, ComplaintForm
 from django.urls import reverse_lazy
 
 
@@ -21,12 +21,17 @@ def home(request):
 
         if has_profile:
             profile = Student.objects.get(user=request.user)
-            return render(request, 'home.html', {'has_profile': has_profile, 'profile': profile})
+            room = profile.room_for_student
+            utilities = Utilities.objects.filter(room=room)
+            roommates = Student.objects.filter(room_for_student=room).exclude(user=request.user)
+            return render(request, 'home.html', {'has_profile': has_profile, 'profile': profile, 'utilities': utilities, 'roommates': roommates})
         else:
             return render(request, 'home.html', {'has_profile': has_profile})
     
     else:
         return render(request, 'home.html')
+    
+    
 
 
 #student 
@@ -61,7 +66,7 @@ def signup(request):
         password2 = request.POST['password2']
     
         if User.objects.filter(username=username):
-            messages.error(request, "Matric Number already exists")
+            messages.error(request, "Username already exists")
             return redirect('home')
         
         if User.objects.filter(email=email):
@@ -115,7 +120,6 @@ def signout(request):
     return redirect('home')
 
 
-
 #allocation
 
 def allocate_hostel(request):
@@ -162,3 +166,59 @@ def allocate_hostel(request):
         return render(request, 'profile.html', {'profile': profile, 'allocated_hostel': allocated_hostel, 'allocated_room': allocated_room})
     else:
         return render(request, '404.html')
+    
+
+def create_complaint(request):
+    if request.user.is_authenticated:
+        user = request.user
+        room = user.student.room_for_student
+
+        if room is not None:
+            if request.method == 'POST':
+                form = ComplaintForm(request.POST)
+                if form.is_valid():
+                    user = request.user
+                    room = user.student.room_for_student
+                    utility = form.cleaned_data['utility']
+                    note = form.cleaned_data['note']
+
+                    # Create the complaint object
+                    #complaint = Complaint.objects.create(user=user, utility=utility, note=note)
+
+                    # Check if Utilities object exists for the user's room
+                    utilities, created = Utilities.objects.get_or_create(room=room)
+
+
+                    # Update the corresponding utility value for the user's room
+                    #utilities = Utilities.objects.filter(room=room)
+                    #for util in utilities:
+                    #    setattr(util, utility, False)
+                    #    util.save()
+
+                    setattr(utilities, utility, False)
+                    utilities.save()
+
+                    # Get the room associated with the selected utility
+                    selected_utility = Utilities.objects.get(room=room)
+                    assigned_room = selected_utility.room
+
+
+                    # Create the complaint object and assign the room
+                    complaint = Complaint.objects.create(user=user, utility=utility, note=note, room=assigned_room)
+
+                    # Redirect to a success page
+                    messages.success(request, "Your complaint has been received successfully")
+                    return redirect('home')
+            else:
+                form = ComplaintForm()
+
+            return render(request, 'create_complaint.html', {'form': form})
+        else:
+            messages.error(request, "You have not been assigned a room yet.")
+            return redirect('home')
+    else:
+        return render(request, '404.html')
+
+
+
+
