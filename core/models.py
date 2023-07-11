@@ -17,7 +17,6 @@ class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_pic = models.ImageField(upload_to ='images/thumbnail/', default="default.png", null=True, blank=True)
     gender = models.CharField(max_length=10, choices=STATUS_CHOICES)
-    course = models.CharField(max_length=100)
     matric_number = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
     college = models.CharField(max_length=100)
