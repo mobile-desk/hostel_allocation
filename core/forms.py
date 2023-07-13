@@ -1,5 +1,6 @@
 from django import forms
 from .models import Student, Utilities
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm
 from django.contrib.auth.models import User
 
@@ -7,7 +8,7 @@ from django.contrib.auth.models import User
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Student
-        fields = ['profile_pic', 'gender', 'college', 'matric_number', 'department', 'room_capacity_preference']
+        fields = ['profile_pic', 'gender', 'matric_number', 'department', 'room_capacity_preference']
 
 
     # Image field
@@ -32,32 +33,16 @@ class ProfileForm(forms.ModelForm):
 
 
 
-    COLLEGECHOICES = (
-        ('college of medical and health sciences', 'College of Medical and Health Sciences'),
-        ('college of natural and applied sciences', 'College of Natural and Applied Sciences'),
-        ('college of management and social sciences', 'College of Management and Social Sciences'),
-        ('college of law', 'College of Law'),
-        ('college of computing and telecommunication', 'College of Computing and Telecommunication'),
-    )
-
-    college = forms.ChoiceField(
-       choices=COLLEGECHOICES, 
-       widget=forms.Select(attrs={
-        'class': 'form-control'
-        }))
-
-
-
-
    
 
     #numberfield
+
+
     room_capacity_preference = forms.IntegerField(
         widget=forms.NumberInput(attrs={
             'class': 'form-control'
-        }
-        
-        )
+        }),
+        validators=[MinValueValidator(2), MaxValueValidator(8)]  # Set the minimum and maximum values here
     )
 
 
@@ -69,6 +54,17 @@ class ProfileForm(forms.ModelForm):
             'class': 'form-control'
         })
     )
+
+    def clean_matric_number(self):
+        matric_number = self.cleaned_data.get('matric_number')
+
+        matric_number = matric_number.strip().upper()
+        # Add your validation logic here
+        # For example, to check if the matric number starts with "AB" and has 8 digits:
+        if not matric_number.startswith('NUO/') or len(matric_number) != 10:
+            raise forms.ValidationError('Invalid matric number.')
+        
+        return matric_number
 
 
 
@@ -85,11 +81,13 @@ class ProfileForm(forms.ModelForm):
         ('anatomy', 'Anatomy'),
         ('physiology', 'Physiology'),
         ('public and community health', 'Public and Community Health'),
+        #college of natural and applied sciences
         ('energy and petroleum studies', 'Energy and Petroleum Studies'), 
         ('petrochemical and industrial chemistry', 'Petrochemical and Industrial Chemistry'),
         ('chemistry', 'Chemistry'),
         ('biochemistry', 'Biochemistry'),
         ('microbiology', 'Microbiology'),
+        #college of management and social sciences
         ('intelligence and security studies', 'Intelligence and Security Studies'),
         ('international relations and strategic studies', 'International Relations and Strategic Studies'),
         ('business administration', 'Business Administration'),
@@ -101,8 +99,15 @@ class ProfileForm(forms.ModelForm):
         ('accounting', 'Accounting'),
         ('economics', 'Economics'),
         ('finance', 'Finance'),
+        #college of law
         ('ll.b. law', 'LL.B. Law'),
-        ('computer science', 'Computer Science')
+        #college of computing and telecommunication
+        ('computer science', 'Computer Science'),
+        ('telecommunication technology', 'Telecommunication Technology'),
+        ('software engineering', 'Software Engineering'),
+        ('cyber security', 'Cyber Security'),
+        ('information systems', 'Information Systems'),
+        ('information technology', 'Information Technology')
     )
 
     department = forms.ChoiceField(
@@ -110,17 +115,6 @@ class ProfileForm(forms.ModelForm):
        widget=forms.Select(attrs={
         'class': 'form-control'
         }))
-
-
-        
-
-
-    
-
-
-
-
-
 
  
 

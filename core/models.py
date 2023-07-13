@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_delete
+from django.core.exceptions import ValidationError
 
 
 # Create your models here.
@@ -44,7 +45,7 @@ class Hostel(models.Model):
 
 
     def __str__(self):
-        return str(self.hostel_name)
+        return str(self.hostel_name) + '|' + str(self.gender)
     
     def save(self, *args, **kwargs):
         if self.room_availability > self.total_rooms:
@@ -63,7 +64,7 @@ class Room(models.Model):
 
 
     def __str__(self):
-        return str(self.hostel) + '|' + str(self.capacity) + '|' + str(self.room_no)
+        return str(self.hostel) + '| room number: ' + str(self.room_no) + '| room capacity: ' + str(self.capacity)
     
    
 
@@ -127,10 +128,24 @@ class Complaint(models.Model):
     room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True)
     utility = models.CharField(max_length=100)
     note = models.TextField()
+    resolved = models.BooleanField(default=False)  
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)  # New field for tracking updates
+
 
     def __str__(self):
-        return f"{self.user.username} - {self.utility} - {self.room} - {self.created_at}"
+        return f"{self.user.username} - {self.utility} - {self.room} - {self.updated_at}"
+
+    def clean(self):
+        existing_complaints = Complaint.objects.filter(room=self.room, utility=self.utility).exclude(pk=self.pk)
+        if existing_complaints.exists() and not existing_complaints.filter(resolved=True).exists():
+            existing_utility = existing_complaints.first().utility
+            activity_log = UserActivityLog(user=instance.user, activity=f"A complaint for the utility {existing_utility} from this room already exists.")
+            activity_log.save()
+            raise ValidationError(f"A complaint for the utility {existing_utility} from this room already exists.")
+
+
+    
     
 
 
@@ -139,4 +154,36 @@ def handle_complaint_delete(sender, instance, **kwargs):
     utilities = Utilities.objects.filter(room=instance.room)
     for util in utilities:
         setattr(util, instance.utility, True)
+        activity_log = UserActivityLog(user=instance.user, activity=f"Your complaint on {instance.utility} was deleted")
+        activity_log.save()
         util.save()
+
+
+@receiver(post_save, sender=Complaint)
+def handle_complaint_save(sender, instance, **kwargs):
+    if instance.resolved:
+        utilities = Utilities.objects.filter(room=instance.room)
+        for util in utilities:
+            setattr(util, instance.utility, True)
+            util.save()
+            # Log the activity for users in the same room
+            users_in_same_room = User.objects.filter(student__room_for_student=instance.room)
+            for user in users_in_same_room:
+                activity_log = UserActivityLog(user=user, activity=f"Complaint on {instance.utility} in your room was resolved")
+                activity_log.save()
+    else:
+        utilities = Utilities.objects.filter(room=instance.room)
+        for util in utilities:
+            setattr(util, instance.utility, False)
+            util.save()
+
+
+
+
+class UserActivityLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    activity = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.activity} - {self.timestamp}"

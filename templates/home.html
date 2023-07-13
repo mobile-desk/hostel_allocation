@@ -43,6 +43,7 @@
                             <a href="create-profile" class="btn btn-primary">Create Profile</a>
                         </div>
                     {% endif %}
+                <a href="{% url 'activity_log' %}" class="btn btn-warning">View Log</a>
                 {% else %}
                     <div class="card-body">
                         <h5 class="card-title">LOGIN TO ACCESS</h5>
@@ -53,6 +54,8 @@
                         </p>
                     </div>
                 {% endif %}
+
+                
             </div>
         </div>
         <div class="col-sm-6">

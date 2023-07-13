@@ -14,6 +14,8 @@ urlpatterns = [
     path('create-profile', views.create_profile, name="create_profile"),
     path('allocate-hostel/', allocate_hostel, name='allocate_hostel'),
     path('complaint/create/', views.create_complaint, name='create_complaint'),
+    path('activity-log', views.user_activity_log, name='activity_log'),
+    path('download/activity-log/', views.download_activity_log, name='download_activity_log'),
 ]
 
 

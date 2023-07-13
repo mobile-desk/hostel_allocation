@@ -6,9 +6,12 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from hostel import settings
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Student, Hostel, Room, Utilities, Complaint
+from .models import Student, Hostel, Room, Utilities, Complaint, UserActivityLog
 from .forms import ProfileForm, ComplaintForm
 from django.urls import reverse_lazy
+
+from django.http import HttpResponse
+from django.template import loader
 
 
 # Create your views here.
@@ -42,6 +45,25 @@ def create_profile(request):
             if form.is_valid():
                 profile = form.save(commit=False)
                 profile.user = request.user
+
+                activity_log = UserActivityLog(user=request.user, activity="Profile was created")
+                activity_log.save()
+
+                #get department value
+                department = form.cleaned_data['department']
+                if department == "medicine and surgery" or department == "dentistry" or department == "pharmacy" or department == "optometry" or department == "nursing" or department == "medical laboratory science" or department == "pharmacology" or department == "anatomy" or department == "physiology" or department == "public and community health": 
+                    college = "college of medical and health sciences"
+                elif department == "energy and petroleum studies" or department == "petrochemical and industrial chemistry" or department == "chemistry" or department == "biochemistry" or department == "microbiology":
+                    college = "college of natural and applied sciences"
+                elif department == "intelligence and security studies" or department == "international relations and strategic studies" or department == "business administration" or department == "public administration" or department == "political science" or department == "sociology" or department == "marketing" or department == "mass communication" or department == "accounting" or department == "economics" or department == "finance":
+                    college = "college of management and social sciences"
+                elif department == "ll.b. law":
+                    college = "college of law"
+                elif department == "computer science" or department == "telecommunication technology" or department == "software engineering" or department == "cyber security" or department == "information systems" or department == "information technology":
+                    college = "college of computing and telecommunication"
+                
+
+                profile.college = college
                 profile.save()
                 return redirect('home')
         else:
@@ -84,6 +106,8 @@ def signup(request):
         myuser.first_name = fname
         myuser.last_name = lname
         
+        activity_log = UserActivityLog(user=request.user, activity="Account was created")
+        activity_log.save()
         
         myuser.save()    
         
@@ -106,6 +130,8 @@ def signin(request):
         if user is not None:
             login(request, user)
             fname = user.first_name
+            activity_log = UserActivityLog(user=request.user, activity="Signed in")
+            activity_log.save()
             return redirect('home')
             
         else:
@@ -115,6 +141,8 @@ def signin(request):
     return render(request, 'signin.html')
 
 def signout(request):
+    activity_log = UserActivityLog(user=request.user, activity="Signed Out")
+    activity_log.save()
     logout(request)
     messages.success(request, "Successfully Logged Out ")
     return redirect('home')
@@ -160,6 +188,11 @@ def allocate_hostel(request):
                 allocated_room.hostel.room_availability -= 1
                 allocated_room.hostel.save()
 
+
+
+            activity_log = UserActivityLog(user=request.user, activity="Hostel allocated successfully")
+            activity_log.save()
+
             profile.save()
             return redirect('home')
 
@@ -182,6 +215,17 @@ def create_complaint(request):
                     utility = form.cleaned_data['utility']
                     note = form.cleaned_data['note']
 
+                    # Check if a complaint with the same utility and room exists and is unresolved
+                    existing_complaint = Complaint.objects.filter(room=room, utility=utility, resolved=False).first()
+
+                    if existing_complaint:
+                        existing_utility = existing_complaint.utility  # Retrieve the existing utility value
+                        activity_log = UserActivityLog(user=request.user, activity=f"A complaint for the utility '{existing_utility}' from this room already exists.")
+                        activity_log.save()
+                        messages.error(request, f"A complaint for the utility '{existing_utility}' from this room already exists.")
+                        return redirect('home')
+
+
                     # Create the complaint object
                     #complaint = Complaint.objects.create(user=user, utility=utility, note=note)
 
@@ -198,6 +242,8 @@ def create_complaint(request):
                     setattr(utilities, utility, False)
                     utilities.save()
 
+                    
+
                     # Get the room associated with the selected utility
                     selected_utility = Utilities.objects.get(room=room)
                     assigned_room = selected_utility.room
@@ -205,6 +251,11 @@ def create_complaint(request):
 
                     # Create the complaint object and assign the room
                     complaint = Complaint.objects.create(user=user, utility=utility, note=note, room=assigned_room)
+
+
+                    activity_log = UserActivityLog(user=request.user, activity=f"You created a complaint about your {utility}")
+                    activity_log.save()
+
 
                     # Redirect to a success page
                     messages.success(request, "Your complaint has been received successfully")
@@ -220,5 +271,24 @@ def create_complaint(request):
         return render(request, '404.html')
 
 
+def user_activity_log(request):
+    if request.user.is_authenticated:
+        user = request.user
+        activity_log = UserActivityLog.objects.filter(user=user).order_by('-timestamp')
+        return render(request, 'activity_log.html', {'activity_log': activity_log})
+    else:
+        return render(request, '404.html')
 
+def download_activity_log(request):
+    user = request.user
+    logs = UserActivityLog.objects.filter(user=user)
 
+    # Generate XML content
+    template = loader.get_template('activity_log.xml')
+    context = {'logs': logs}
+    xml_content = template.render(context)
+
+    # Create the HTTP response with the XML content and appropriate headers
+    response = HttpResponse(xml_content, content_type='application/xml')
+    response['Content-Disposition'] = 'attachment; filename="activity_log.xml"'
+    return response

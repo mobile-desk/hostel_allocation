@@ -46,6 +46,7 @@
     <div class="container-fluid">
         <a href="{% url 'home' %}" class="navbar-brand" style="color: white;">HOSTEL ALLOCATION SYSTEM</a>
         {% if user.is_authenticated %}
+            
             <a href="signout" >
                 <button class="btn btn-outline-danger" type="submit">LOGOUT</button>
             </a>
