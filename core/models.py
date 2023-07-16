@@ -187,3 +187,25 @@ class UserActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.activity} - {self.timestamp}"
+
+
+
+class CommunityMessage(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    receiver_college = models.CharField(max_length=100)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"From {self.sender.username} to {self.receiver_college}"
+
+
+class HostelCommunityMessage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    hostel = models.ForeignKey('Hostel', on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.hostel.hostel_name} - {self.created_at}"
+

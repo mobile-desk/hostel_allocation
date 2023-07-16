@@ -16,6 +16,11 @@ urlpatterns = [
     path('complaint/create/', views.create_complaint, name='create_complaint'),
     path('activity-log', views.user_activity_log, name='activity_log'),
     path('download/activity-log/', views.download_activity_log, name='download_activity_log'),
+    path('community/', views.community, name='community'),
+    path('hostelcommunity/', views.hostel_community, name='hostel_community'),
+    path('post_message/', views.post_message, name='post_message'),
+    path('userprofile/<int:user_id>/', views.userprofile, name='userprofile'),
+    path('edit_student/', views.edit_student, name='edit_student'),
 ]
 
 

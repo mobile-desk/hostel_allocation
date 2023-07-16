@@ -14,6 +14,7 @@
                                 <h6> ROOM NO: {{profile.room_for_student.room_no}}</h6>
                                 
                             </div>
+                            <a href="{% url 'hostel_community' %}" class="btn btn-outline-secondary">View {{ profile.hostel }} Community</a>
                         {% else %}
                             <div class="card-body">
                                 <h5 class="card-title">No Hostel</h5>
@@ -29,6 +30,8 @@
                                 
                             </div>
                         {% endif %}
+                        <a href="{% url 'community' %}" class="btn btn-outline-secondary">View {{ profile.college }} Community</a>
+                        
                     {% else %}
                         <div class="card-body">
                             <h5 class="card-title">SETUP YOUR PROFILE</h5>

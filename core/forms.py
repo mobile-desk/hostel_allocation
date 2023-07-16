@@ -1,5 +1,5 @@
 from django import forms
-from .models import Student, Utilities
+from .models import Student, Utilities, CommunityMessage
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm
 from django.contrib.auth.models import User
@@ -24,16 +24,16 @@ class ProfileForm(forms.ModelForm):
         ('female', 'Female'),
         ('male', 'Male'),
     )
-    
+
     gender = forms.ChoiceField(
-       choices=CHOICES, 
+       choices=CHOICES,
        widget=forms.Select(attrs={
         'class': 'form-control'
         }))
 
 
 
-   
+
 
     #numberfield
 
@@ -47,7 +47,7 @@ class ProfileForm(forms.ModelForm):
 
 
     # Charfield
-  
+
 
     matric_number = forms.CharField(
         widget=forms.TextInput(attrs={
@@ -61,20 +61,20 @@ class ProfileForm(forms.ModelForm):
         matric_number = matric_number.strip().upper()
         # Add your validation logic here
         # For example, to check if the matric number starts with "AB" and has 8 digits:
-        if not matric_number.startswith('NUO/') or len(matric_number) != 10:
+        if not matric_number.startswith('NUO/'):
             raise forms.ValidationError('Invalid matric number.')
-        
+
         return matric_number
 
 
 
-    
+
 
     COURSECHOICES = (
-        ('medicine and surgery', 'Medicine and Surgery'), 
-        ('dentistry', 'Dentistry'), 
-        ('pharmacy', 'Pharmacy'), 
-        ('optometry', 'Optometry'), 
+        ('medicine and surgery', 'Medicine and Surgery'),
+        ('dentistry', 'Dentistry'),
+        ('pharmacy', 'Pharmacy'),
+        ('optometry', 'Optometry'),
         ('nursing', 'Nursing'),
         ('medical laboratory science', 'Medical Laboratory Science'),
         ('pharmacology', 'Pharmacology'),
@@ -82,7 +82,7 @@ class ProfileForm(forms.ModelForm):
         ('physiology', 'Physiology'),
         ('public and community health', 'Public and Community Health'),
         #college of natural and applied sciences
-        ('energy and petroleum studies', 'Energy and Petroleum Studies'), 
+        ('energy and petroleum studies', 'Energy and Petroleum Studies'),
         ('petrochemical and industrial chemistry', 'Petrochemical and Industrial Chemistry'),
         ('chemistry', 'Chemistry'),
         ('biochemistry', 'Biochemistry'),
@@ -111,16 +111,26 @@ class ProfileForm(forms.ModelForm):
     )
 
     department = forms.ChoiceField(
-       choices=COURSECHOICES, 
+       choices=COURSECHOICES,
        widget=forms.Select(attrs={
         'class': 'form-control'
         }))
 
- 
 
 
+class StudentEditForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ['profile_pic', 'gender', 'matric_number', 'room_capacity_preference']
+        widgets = {
+            'profile_pic': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
+            'matric_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'room_capacity_preference': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+       
 
-            
+
 
 
 
@@ -157,16 +167,30 @@ class ComplaintForm(forms.ModelForm):
         ('decoder', 'Decoder'),
         ('other', 'Others')
     )
-    
+
     utility = forms.ChoiceField(
-       choices=CHOICES, 
+       choices=CHOICES,
        widget=forms.Select(attrs={
         'class': 'form-control'
         }))
-    
+
 
     # Charfield
     note = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control'
+        })
+    )
+
+
+class CommunityMessageForm(forms.ModelForm):
+    class Meta:
+        model = CommunityMessage
+        fields = ['message']
+
+
+    # Charfield
+    message = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control'
         })

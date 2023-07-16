@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from email import message
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -6,12 +6,16 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from hostel import settings
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Student, Hostel, Room, Utilities, Complaint, UserActivityLog
-from .forms import ProfileForm, ComplaintForm
+from .models import Student, Hostel, Room, Utilities, Complaint, UserActivityLog, CommunityMessage, HostelCommunityMessage
+from .forms import ProfileForm, ComplaintForm, CommunityMessageForm, StudentEditForm
 from django.urls import reverse_lazy
+from django.contrib.auth.decorators import login_required
 
 from django.http import HttpResponse
 from django.template import loader
+
+
+
 
 
 # Create your views here.
@@ -74,6 +78,24 @@ def create_profile(request):
 
 
 
+def edit_student(request):
+    if request.user.is_authenticated:
+        if request.user.is_authenticated:
+            student = request.user.student
+            if request.method == 'POST':
+                form = StudentEditForm(request.POST, request.FILES, instance=student)
+                if form.is_valid():
+                    form.save()
+                    return redirect('profile')
+            else:
+                form = StudentEditForm(instance=student)
+            return render(request, 'edit_student.html', {'form': form})
+        else:
+            return redirect('login')
+    else:
+        return render(request, '404.html')
+
+
 #authentication
 def signup(request):
     
@@ -106,8 +128,6 @@ def signup(request):
         myuser.first_name = fname
         myuser.last_name = lname
         
-        activity_log = UserActivityLog(user=request.user, activity="Account was created")
-        activity_log.save()
         
         myuser.save()    
         
@@ -292,3 +312,60 @@ def download_activity_log(request):
     response = HttpResponse(xml_content, content_type='application/xml')
     response['Content-Disposition'] = 'attachment; filename="activity_log.xml"'
     return response
+
+
+
+def community(request):
+    if request.user.is_authenticated:
+        user = request.user
+        student = Student.objects.get(user=user)
+        college = student.college
+
+        if request.method == 'POST':
+            form = CommunityMessageForm(request.POST)
+            if form.is_valid():
+                message = form.cleaned_data['message']
+                CommunityMessage.objects.create(sender=user, receiver_college=college, message=message)
+                return redirect('community')
+
+        else:
+            form = CommunityMessageForm()
+
+        messages = CommunityMessage.objects.filter(receiver_college=college).order_by('-timestamp')
+
+        context = {'form': form, 'messages': messages}
+        return render(request, 'community.html', context)
+    else:
+        return render(request, '404.html')
+
+
+def hostel_community(request):
+    if request.user.is_authenticated:
+        messages = HostelCommunityMessage.objects.all()
+        return render(request, 'hostelcommunity.html', {'messages': messages})
+    else:
+        return render(request, '404.html')
+
+def post_message(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            message = request.POST.get('message')
+            hostel = request.user.student.hostel
+            HostelCommunityMessage.objects.create(user=request.user, hostel=hostel, message=message)
+            return redirect('hostel_community')
+        else:
+            return render(request, 'post_message.html')
+    else:
+        return render(request, '404.html')
+
+
+def userprofile(request, user_id):
+    if request.user.is_authenticated:
+        user = get_object_or_404(User, id=user_id)
+        student = user.student
+        context = {'user': user, 'student': student}
+        return render(request, 'userprofile.html', context)
+
+    else:
+        return render(request, '404.html')
+
